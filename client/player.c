@@ -33,6 +33,8 @@ void makeBoard(char board[n][n]) {
 }
 
 int main(int argc, char* argv[]) {
+    memset(board, '-', sizeof board);
+    
 
     struct sockaddr_in server_addr;
     memset(&server_addr, 0, sizeof server_addr);
@@ -43,7 +45,13 @@ int main(int argc, char* argv[]) {
 
     int player_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-    connect(player_socket, (struct sockaddr *)&server_addr, sizeof server_addr);
+    if(connect(player_socket, (struct sockaddr *)&server_addr, sizeof server_addr) != -1){
+        printf("Connected to server!\n");
+    }
+    else{
+        printf("Connection failed!\n");
+        return 0;
+    }
 
 
 
@@ -55,8 +63,8 @@ int main(int argc, char* argv[]) {
     printf("%s\n", info_buffer);
 
     for(;;){
+        printf("--------------------------------\n");
         bzero(info_buffer, sizeof info_buffer);
-        printf("Current board state:\n");
         msg_size = read(player_socket, board, sizeof board);
         if(msg_size == 0){
             printf("Game over!\n");
@@ -67,16 +75,18 @@ int main(int argc, char* argv[]) {
         msg_size = read(player_socket, info_buffer, sizeof info_buffer);
         printf("%s\n", info_buffer);
         if(msg_size == 31){
+            bzero(info_buffer, sizeof info_buffer);
             printf("Enter your move: \n");
             msg_size = read(0, move, sizeof move);
-            printf("%d\n", msg_size);
             write(player_socket, move, sizeof move);
+            msg_size = read(player_socket, info_buffer, sizeof info_buffer);
+            printf("%s\n", info_buffer);
         }
         else{
             printf("Waiting for other player to make a move...\n");
         }
 
     }
-  
+  return 0;
 }
 

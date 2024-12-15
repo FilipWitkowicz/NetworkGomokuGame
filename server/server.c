@@ -15,6 +15,20 @@
 
 int size;
 
+int moveValidation(int row, int column){
+    if (board[row][column] == '-') {
+        if (turn) {
+            board[row][column] = 'B';
+            turn = 0;
+        } else {
+            board[row][column] = 'W';
+            turn = 1;
+        }
+        return 1;
+    }
+    return 0;
+}
+
 int main() {
 
 
@@ -24,7 +38,7 @@ int main() {
     memset(&player2_addr, 0, sizeof player2_addr);
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(3000);
+    server_addr.sin_port = htons(3003);
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -53,8 +67,10 @@ int main() {
     for (;;) {
         memset(move, 0, sizeof move);
         makeBoard(board);
-        write(player1_socket, board, sizeof board);
-        write(player2_socket, board, sizeof board);
+        size = write(player1_socket, board, sizeof board);
+        printf("%d\n", size);
+        size = write(player2_socket, board, sizeof board);
+        printf("%d\n", size);
 
 
         // checking if game is over
@@ -80,6 +96,24 @@ int main() {
 
             size = read(player2_socket, move, sizeof move);
             printf("Move: %s\n", move);
+            if(size == 4){
+                row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
+                column = move[0] - 'A';
+                if(moveValidation(row, column)){
+                    write(player2_socket, "Valid move!\n", 12);
+                }
+                else{
+                    write(player2_socket, "Invalid move!\nIt's still your turn!\n", 35);
+                    printf("Invalid move!\n");
+                    continue;
+                }
+            }
+            else{
+                write(player2_socket, "Invalid move!\nIt's still your turn!\n", 35);
+                printf("Invalid move!\n");
+                continue;
+            }
+     
         } else {
             printf("White to move!\n");
             write(player1_socket, "White to move!\nIt's your turn!\n", 31);
@@ -87,28 +121,25 @@ int main() {
 
             size = read(player1_socket, move, sizeof move);
             printf("Move: %s\n", move);
-        }
-
-        if (size != 4) {
-            printf("Invalid move!\n");
-            continue;
-        }
-        
-        row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
-        column = move[0] - 'A';
-
-        if (board[row][column] == '-') {
-            if (turn) {
-                board[row][column] = 'B';
-                turn = 0;
-            } else {
-                board[row][column] = 'W';
-                turn = 1;
+            if(size == 4){
+                row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
+                column = move[0] - 'A';
+                if(moveValidation(row, column)){
+                    write(player1_socket, "Valid move!\n", 12);
+                }
+                else{
+                    write(player1_socket, "Invalid move!\nIt's still your turn!\n", 35);
+                    printf("Invalid move!\n");
+                    continue;
+                }
             }
-        } else {
-            printf("Invalid move!\n");
-            continue;
+            else{
+                write(player1_socket, "Invalid move!\nIt's still your turn!\n", 35);
+                printf("Invalid move!\n");
+                continue;
+            }
         }
+
 
         winner = checkWinner(board);
     }
