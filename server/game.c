@@ -79,11 +79,6 @@ void initializeGame() {
     memset(board, '-', sizeof board);
     memset(move, 0, sizeof move);
 
-    printf("Welcome to Gomoku!\nTo place a move type board coordinates like 'A02'\nTo Start a game type 'RDY'\n");
-    for (;;) {
-        read(0, move, sizeof move);
-        if (strcmp(move, "RDY\n") == 0) {
-            break;
-        }
-    }
+    printf("Game has been started!\n");
+
 }
