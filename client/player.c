@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <signal.h>
 
 #define n 15
 
@@ -15,6 +16,15 @@
 char info_buffer[1024]; 
 char board[n][n];
 char move[4];
+int player_socket;
+
+void handle_signal(int signal) {
+    if (signal == SIGINT) {
+        printf("Server has been stopped!\n");
+        close(player_socket); // Zamknięcie gniazda
+        exit(0);
+    }
+}
 
 void makeBoard(char board[n][n]) {
     printf("    A B C D E F G H I J K L M N O\n");
@@ -32,6 +42,7 @@ void makeBoard(char board[n][n]) {
     }
 }
 
+
 int main(int argc, char* argv[]) {
     memset(board, '-', sizeof board);
     
@@ -43,7 +54,10 @@ int main(int argc, char* argv[]) {
     server_addr.sin_addr.s_addr = inet_addr(argv[1]);
     server_addr.sin_port = htons(atoi(argv[2]));
 
-    int player_socket = socket(AF_INET, SOCK_STREAM, 0);
+    player_socket = socket(AF_INET, SOCK_STREAM, 0);
+    signal(SIGINT, handle_signal);
+    int opt = 1;
+    setsockopt(player_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     if(connect(player_socket, (struct sockaddr *)&server_addr, sizeof server_addr) != -1){
         printf("Connected to server!\n");

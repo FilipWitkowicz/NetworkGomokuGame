@@ -9,11 +9,13 @@
 #include <unistd.h> 
 
 #include <pthread.h>
+#include <signal.h>
 #include "game.h"
 
 //gcc server.c game.c -o game && ./game
 
 int size;
+int server_socket;
 
 int moveValidation(int row, int column){
     if (board[row][column] == '-') {
@@ -29,8 +31,18 @@ int moveValidation(int row, int column){
     return 0;
 }
 
-int main() {
 
+void handle_signal(int signal) {
+    if (signal == SIGINT) {
+        printf("Server has been stopped!\n");
+        close(server_socket); // Zamknięcie gniazda
+        exit(0);
+    }
+}
+
+
+
+int main() {
 
     struct sockaddr_in server_addr, player1_addr, player2_addr;
     memset(&server_addr, 0, sizeof server_addr);
@@ -41,9 +53,13 @@ int main() {
     server_addr.sin_port = htons(3003);
     server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    server_socket = socket(AF_INET, SOCK_STREAM, 0);
     bind(server_socket, (struct sockaddr*)&server_addr, sizeof server_addr);
     listen(server_socket, 10);
+
+    signal(SIGINT, handle_signal);
+    int opt = 1;
+    setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     printf("Server is running!\nWaiting for players...\n");
 
