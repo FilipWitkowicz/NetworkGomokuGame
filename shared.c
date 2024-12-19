@@ -12,6 +12,7 @@
 #include "shared.h"
 
 int turn = 0;
+char ack2[5];
 
 char checkWinner(char board[n][n]) {
     for (int i = 0; i < n; i++) {
@@ -111,14 +112,17 @@ void handleTurn(int playing, int waiting, char board[n][n]) {
 
         if (moveValidation(board, row, column)) {
             sendMsg(playing, "Valid move!\n");
+            recv(playing, ack2, sizeof ack2, 0);
         } else {
             sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
             printf("Invalid move!\n");
+            recv(playing, ack2, sizeof ack2, 0);
             return;
         }
     } else {
         sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
         printf("Invalid move!\n");
+        recv(playing, ack2, sizeof ack2, 0);
         return;
     }
 

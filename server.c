@@ -17,6 +17,7 @@ int size;
 int server_socket;
 char board[n][n];
 char winner = '-';
+char ack[5];
 
 struct sockaddr_in server_addr, player1_addr, player2_addr;
 
@@ -48,18 +49,25 @@ int main() {
     printf("Player 2 connected!\n");
     sendMsg(player2_socket, "Welcome to Gomoku!\nYou are playing black!\n");
 
+    recv(player1_socket, ack, sizeof ack, 0);
+    recv(player2_socket, ack, sizeof ack, 0);
 
-    usleep(500000);
+
+    //usleep(500000);
 
     sendMsg(player1_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
     sendMsg(player2_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
 
+    recv(player1_socket, ack, sizeof ack, 0);
+    recv(player2_socket, ack, sizeof ack, 0);
+
     printf("Game has been started!\n");
 
+    // usleep(500000);
 
     // game loop
     for (;;) {
-        usleep(500000);
+        // usleep(500000);
         makeBoard(board);
 
         
@@ -85,11 +93,11 @@ int main() {
         }
         if(turn){
             printf("Black to move!\n");
-            handleTurn(player1_socket, player2_socket, board);
+            handleTurn(player2_socket, player1_socket, board);
         }
         else{
             printf("White to move!\n");
-            handleTurn(player2_socket, player1_socket, board);
+            handleTurn(player1_socket, player2_socket, board);
         }
 
 

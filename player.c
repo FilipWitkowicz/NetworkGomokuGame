@@ -39,13 +39,16 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-
+    //welcome message
     size = recv(player_socket, info_buffer, sizeof info_buffer, 0);
+    send(player_socket, "ack\n", sizeof "ack\n", 0);
 
     printf("%s\n", info_buffer);
     memset(info_buffer, 0, sizeof info_buffer);
 
+    //both players connected msg
     size = recv(player_socket, info_buffer, sizeof info_buffer, 0);
+    send(player_socket, "ack\n", sizeof "ack\n", 0);
 
     printf("%s\n", info_buffer);
     memset(info_buffer, 0, sizeof info_buffer);
@@ -71,8 +74,11 @@ int main(int argc, char* argv[]) {
             printf("Enter your move: \n");
             scanf("%s", move);
             send(player_socket, move, sizeof move, 0);
+
+            //move validation info
             size = recv(player_socket, info_buffer, sizeof info_buffer, 0);
             printf("%s\n", info_buffer);
+            send(player_socket, "ack\n", sizeof "ack\n", 0);
         }
         else{
             printf("Waiting for other player to make a move...\n");
