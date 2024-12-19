@@ -49,6 +49,8 @@ int main() {
     sendMsg(player2_socket, "Welcome to Gomoku!\nYou are playing black!\n");
 
 
+    usleep(500000);
+
     sendMsg(player1_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
     sendMsg(player2_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
 
@@ -57,7 +59,7 @@ int main() {
 
     // game loop
     for (;;) {
-
+        usleep(500000);
         makeBoard(board);
 
         
@@ -81,8 +83,14 @@ int main() {
             close(server_socket);
             break;
         }
-
-        handleTurn(player1_socket, player2_socket, board);
+        if(turn){
+            printf("Black to move!\n");
+            handleTurn(player1_socket, player2_socket, board);
+        }
+        else{
+            printf("White to move!\n");
+            handleTurn(player2_socket, player1_socket, board);
+        }
 
 
         winner = checkWinner(board);

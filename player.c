@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
         size = recv(player_socket, info_buffer, sizeof info_buffer, 0);
         printf("%s\n", info_buffer);
-        if(size == 31){
+        if(size == 16){
             memset(info_buffer, 0, sizeof info_buffer);
             printf("Enter your move: \n");
             scanf("%s", move);

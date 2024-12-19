@@ -73,6 +73,9 @@ void makeBoard(char board[n][n]) {
 
 
 int moveValidation(char board[n][n], int row, int column){
+    if (row < 0 || row >= n || column < 0 || column >= n) {
+        return 0; 
+    }
     if (board[row][column] == '-') {
         if (turn) {
             board[row][column] = 'B';
@@ -90,59 +93,33 @@ void sendMsg(int socket, const char* message) {
     send(socket, message, strlen(message), 0);
 }
 
-void handleTurn(int player1_socket, int player2_socket, char board[n][n]) {
+void handleTurn(int playing, int waiting, char board[n][n]) {
     char move[4];
     memset(move, 0, sizeof move);
     int size;
     int row, column;
-    if (turn) {
-        printf("Black to move!\n");
-        send(player2_socket, "Black to move!\nIt's your turn!\n", 31, 0);
-        send(player1_socket, "Black to move!\nIt's your opponent's turn!\n", 41, 0);
 
-        size = read(player2_socket, move, sizeof move);
-        printf("Move: %s\n", move);
+    sendMsg(waiting, "It's your opponent's turn!\n");
+    sendMsg(playing, "It's your turn!\n");
 
-        if (size == 4) {
-            row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
-            column = move[0] - 'A';
+    size = recv(playing, move, sizeof move, 0);
+    printf("Move: %s\n", move);
 
-            if (moveValidation(board, row, column)) {
-                send(player2_socket, "Valid move!\n", 12, 0);
-            } else {
-                send(player2_socket, "Invalid move!\nIt's still your turn!\n", 35, 0);
-                printf("Invalid move!\n");
-                return;
-            }
+    if (size == 4) {
+        row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
+        column = move[0] - 'A';
+
+        if (moveValidation(board, row, column)) {
+            sendMsg(playing, "Valid move!\n");
         } else {
-            send(player2_socket, "Invalid move!\nIt's still your turn!\n", 35, 0);
+            sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
             printf("Invalid move!\n");
             return;
         }
-
     } else {
-        printf("White to move!\n");
-        send(player1_socket, "White to move!\nIt's your turn!\n", 31, 0);
-        send(player2_socket, "White to move!\nIt's your opponent's turn!\n", 41, 0);
-
-        size = read(player1_socket, move, sizeof move);
-        printf("Move: %s\n", move);
-
-        if (size == 4) {
-            row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
-            column = move[0] - 'A';
-
-            if (moveValidation(board, row, column)) {
-                send(player1_socket, "Valid move!\n", 12, 0);
-            } else {
-                send(player1_socket, "Invalid move!\nIt's still your turn!\n", 35, 0);
-                printf("Invalid move!\n");
-                return;
-            }
-        } else {
-            send(player1_socket, "Invalid move!\nIt's still your turn!\n", 35, 0);
-            printf("Invalid move!\n");
-            return;
-        }
+        sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
+        printf("Invalid move!\n");
+        return;
     }
+
 }
