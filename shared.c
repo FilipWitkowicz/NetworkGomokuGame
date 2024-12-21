@@ -55,6 +55,17 @@ char checkWinner(char board[n][n]) {
     return '-';
 }
 
+int checkDraw(char board[n][n]) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (board[i][j] == '-') {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
 void makeBoard(char board[n][n]) {
     printf("    A B C D E F G H I J K L M N O\n");
     for (int i = 0; i < n; i++) {

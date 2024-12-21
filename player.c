@@ -54,7 +54,6 @@ int main(int argc, char* argv[]) {
     memset(info_buffer, 0, sizeof info_buffer);
 
     for(;;){
-        printf("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n");
         memset(info_buffer, 0, sizeof info_buffer);
         size = recv(player_socket, board, sizeof board, 0);
         printf("size: %d\n", size);
@@ -83,6 +82,11 @@ int main(int argc, char* argv[]) {
         else{
             printf("Waiting for other player to make a move...\n");
         }
+
+        memset(info_buffer, 0, sizeof info_buffer);
+        size = recv(player_socket, info_buffer, sizeof info_buffer, 0);
+        send(player_socket, "ack\n", sizeof "ack\n", 0);
+        printf("%s\n", info_buffer);
 
     }
   return 0;
