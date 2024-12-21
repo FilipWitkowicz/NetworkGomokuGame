@@ -10,8 +10,8 @@ extern int turn;
 char checkWinner(char board[n][n]);
 void makeBoard(char board[n][n]);
 int moveValidation(char board[n][n], int row, int column);
-void sendMsg(int socket, const char* message);
-void handleTurn(int playing, int waiting, char board[n][n]);
+int sendMsg(int socket, const char* message);
+int handleTurn(int playing, int waiting, char board[n][n]);
 int checkDraw(char board[n][n]);
 
 #endif

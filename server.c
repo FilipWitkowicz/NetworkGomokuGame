@@ -60,8 +60,14 @@ int main() {
         return 0;
     }
     printf("Player 1 connected!\n");
-    sendMsg(player1_socket, "Welcome to Gomoku!\nYou are playing white!\nWaiting for second player!\n");
-    
+    size = sendMsg(player1_socket, "Welcome to Gomoku!\nYou are playing white!\nWaiting for second player!\n");
+    if(size <= 0){
+        printf("Player 1 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        return 0;
+    }
+
 
     int player2_socket = accept(server_socket, (struct sockaddr*)&player2_addr, &struct_size);
     if (player2_socket == -1) {
@@ -71,19 +77,68 @@ int main() {
         return 0;
     }
     printf("Player 2 connected!\n");
-    sendMsg(player2_socket, "Welcome to Gomoku!\nYou are playing black!\n");
+    size = sendMsg(player2_socket, "Welcome to Gomoku!\nYou are playing black!\n");
+    if(size <= 0){
+        printf("Player 2 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
 
-    recv(player1_socket, ack, sizeof ack, 0);
+    size = recv(player1_socket, ack, sizeof ack, 0);
+    if (size <= 0) {
+        printf("Player 1 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
     recv(player2_socket, ack, sizeof ack, 0);
+    if (size <= 0) {
+        printf("Player 2 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
 
 
     //usleep(500000);
 
-    sendMsg(player1_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
-    sendMsg(player2_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
+    size = sendMsg(player1_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
+    if(size <= 0){
+        printf("Player 1 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
+    size = sendMsg(player2_socket, "Both players has connected!\nTo play a move type board coordinates like 'A02'\n");
+    if(size <= 0){
+        printf("Player 2 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
 
-    recv(player1_socket, ack, sizeof ack, 0);
-    recv(player2_socket, ack, sizeof ack, 0);
+    size = recv(player1_socket, ack, sizeof ack, 0);
+    if (size <= 0) {
+        printf("Player 1 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
+    size = recv(player2_socket, ack, sizeof ack, 0);
+    if (size <= 0) {
+        printf("Player 2 disconnected before game even started! \n");
+        close(server_socket);
+        close(player1_socket);
+        close(player2_socket);
+        return 0;
+    }
 
     printf("Game has been started!\n");
 
@@ -92,22 +147,60 @@ int main() {
     // game loop
     for (;;) {
         // usleep(500000);
-        makeBoard(board);
+        if (winner == '-') {
+            makeBoard(board);
+        }
+
 
         
         size = send(player1_socket, board, sizeof board, 0);
-        printf("%d\n", size);
+        if(size <= 0){
+            printf("White disconnected!\n");
+            printf("Black won!\n");
+            winner = 'B';
+
+        }
         size = send(player2_socket, board, sizeof board, 0);
-        printf("%d\n", size);
+        if(size <= 0){
+            printf("Black disconnected!\n");
+            printf("White won!\n");
+            winner = 'W';
+
+        }
+
 
         
         if(turn){
             printf("Black to move!\n");
-            handleTurn(player2_socket, player1_socket, board);
+            size = handleTurn(player2_socket, player1_socket, board);
+            if(size == 1){
+                printf("Black disconnected!\n");
+                printf("White won!\n");
+                winner = 'W';
+
+            }
+            else if(size == 2){
+                printf("White disconnected!\n");
+                printf("Black won!\n");
+                winner = 'B';
+
+            }
         }
         else{
             printf("White to move!\n");
-            handleTurn(player1_socket, player2_socket, board);
+            size = handleTurn(player1_socket, player2_socket, board);
+            if(size == 1){
+                printf("White disconnected!\n");
+                printf("Black won!\n");
+                winner = 'B';
+
+            }
+            else if(size == 2){
+                printf("Black disconnected!\n");
+                printf("White won!\n");
+                winner = 'W';
+
+            }
         }
 
 
@@ -130,9 +223,7 @@ int main() {
             close(server_socket);
             break;
         }
-
-        int draw = checkDraw(board);
-        if (draw) {
+        else if(checkDraw(board)){
             printf("Draw!\n");
             sendMsg(player1_socket, "Draw!\n");
             sendMsg(player2_socket, "Draw!\n");
@@ -141,10 +232,34 @@ int main() {
             close(server_socket);
             break;
         }
-        sendMsg(player1_socket, "next round!\n");
-        sendMsg(player2_socket, "next round!\n");
-        recv(player1_socket, ack, sizeof ack, 0);
-        recv(player2_socket, ack, sizeof ack, 0);
+        else{
+            size = sendMsg(player1_socket, "next round!\n");
+            if(size <= 0){
+                printf("White disconnected!\n");
+                printf("Black won!\n");
+                winner = 'B';
+
+            }
+            size = sendMsg(player2_socket, "next round!\n");
+            if (size <= 0) {
+                printf("Black disconnected!\n");
+                printf("White won!\n");
+                winner = 'W';
+            }
+            size = recv(player1_socket, ack, sizeof ack, 0);
+            if (size <= 0) {
+                printf("White disconnected!\n");
+                printf("Black won!\n");
+                winner = 'B';
+            } 
+            size = recv(player2_socket, ack, sizeof ack, 0);
+            if (size <= 0) {
+                printf("Black disconnected!\n");
+                printf("White won!\n");
+                winner = 'W';
+            }
+        }
+      
     }
 
 

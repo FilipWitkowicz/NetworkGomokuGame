@@ -14,6 +14,7 @@
 int turn = 0;
 char ack2[5];
 
+
 char checkWinner(char board[n][n]) {
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
@@ -101,20 +102,31 @@ int moveValidation(char board[n][n], int row, int column){
     return 0;
 }
 
-void sendMsg(int socket, const char* message) {
-    send(socket, message, strlen(message), 0);
+int sendMsg(int socket, const char* message) {
+    int size = send(socket, message, strlen(message), 0);
+    return size;
 }
 
-void handleTurn(int playing, int waiting, char board[n][n]) {
+int handleTurn(int playing, int waiting, char board[n][n]) {
     char move[4];
     memset(move, 0, sizeof move);
     int size;
     int row, column;
 
-    sendMsg(waiting, "It's your opponent's turn!\n");
-    sendMsg(playing, "It's your turn!\n");
+    size = sendMsg(waiting, "It's your opponent's turn!\n");
+    if(size <= 0){
+        return 2;
+    }
+
+    size = sendMsg(playing, "It's your turn!\n");
+    if(size <= 0){
+        return 1;
+    }
 
     size = recv(playing, move, sizeof move, 0);
+    if (size <= 0) {
+        return 1;
+    }
     printf("Move: %s\n", move);
 
     if (size == 4) {
@@ -122,19 +134,37 @@ void handleTurn(int playing, int waiting, char board[n][n]) {
         column = move[0] - 'A';
 
         if (moveValidation(board, row, column)) {
-            sendMsg(playing, "Valid move!\n");
-            recv(playing, ack2, sizeof ack2, 0);
+            size = sendMsg(playing, "Valid move!\n");
+            if (size <= 0) {
+                return 1;
+            }
+            size = recv(playing, ack2, sizeof ack2, 0);
+            if (size <= 0) {
+                return 1;
+            }
         } else {
-            sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
+            size = sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
+            if (size <= 0) {
+                return 1;
+            }
             printf("Invalid move!\n");
-            recv(playing, ack2, sizeof ack2, 0);
-            return;
+            size = recv(playing, ack2, sizeof ack2, 0);
+            if (size <= 0) {
+                return 1;
+            }
+            return 0;
         }
     } else {
-        sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
+        size = sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
+        if (size <= 0) {
+            return 1;
+        }
         printf("Invalid move!\n");
-        recv(playing, ack2, sizeof ack2, 0);
-        return;
+        size = recv(playing, ack2, sizeof ack2, 0);
+        if (size <= 0) {
+            return 1;
+        }
+        return 0;
     }
-
+    return 0;
 }
