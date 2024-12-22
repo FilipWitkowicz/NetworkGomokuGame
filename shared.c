@@ -11,7 +11,6 @@
 #include <pthread.h>
 #include "shared.h"
 
-int turn = 0;
 char ack2[5];
 
 
@@ -85,17 +84,15 @@ void makeBoard(char board[n][n]) {
 
 
 
-int moveValidation(char board[n][n], int row, int column){
+int moveValidation(char board[n][n], int row, int column, int turn){
     if (row < 0 || row >= n || column < 0 || column >= n) {
         return 0; 
     }
     if (board[row][column] == '-') {
         if (turn) {
             board[row][column] = 'B';
-            turn = 0;
         } else {
             board[row][column] = 'W';
-            turn = 1;
         }
         return 1;
     }
@@ -107,7 +104,7 @@ int sendMsg(int socket, const char* message) {
     return size;
 }
 
-int handleTurn(int playing, int waiting, char board[n][n]) {
+int handleTurn(int playing, int waiting, char board[n][n], int turn) {
     char move[4];
     memset(move, 0, sizeof move);
     int size;
@@ -133,7 +130,7 @@ int handleTurn(int playing, int waiting, char board[n][n]) {
         row = (move[1] - '0') * 10 + (move[2] - '0') - 1;
         column = move[0] - 'A';
 
-        if (moveValidation(board, row, column)) {
+        if (moveValidation(board, row, column, turn)) {
             size = sendMsg(playing, "Valid move!\n");
             if (size <= 0) {
                 return 1;
@@ -152,7 +149,7 @@ int handleTurn(int playing, int waiting, char board[n][n]) {
             if (size <= 0) {
                 return 1;
             }
-            return 0;
+            return -1;
         }
     } else {
         size = sendMsg(playing, "Invalid move!\nIt's still your turn!\n");
@@ -164,7 +161,7 @@ int handleTurn(int playing, int waiting, char board[n][n]) {
         if (size <= 0) {
             return 1;
         }
-        return 0;
+        return -1;
     }
     return 0;
 }
