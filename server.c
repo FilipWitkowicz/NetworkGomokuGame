@@ -48,6 +48,7 @@ void * socketThread(void *arg){
             printf("White disconnected!\n");
             printf("Black won!\n");
             winner = 'B';
+            break;
 
         }
         size = send(player2_socket, board, sizeof board, 0);
@@ -55,6 +56,7 @@ void * socketThread(void *arg){
             printf("Black disconnected!\n");
             printf("White won!\n");
             winner = 'W';
+            break;
 
         }
 
@@ -68,12 +70,14 @@ void * socketThread(void *arg){
                 printf("Black disconnected!\n");
                 printf("White won!\n");
                 winner = 'W';
+                break;
 
             }
             else if(size == 2){
                 printf("White disconnected!\n");
                 printf("Black won!\n");
                 winner = 'B';
+                break;
 
             }
             else if(size == 0){
@@ -87,12 +91,14 @@ void * socketThread(void *arg){
                 printf("White disconnected!\n");
                 printf("Black won!\n");
                 winner = 'B';
+                break;
 
             }
             else if(size == 2){
                 printf("Black disconnected!\n");
                 printf("White won!\n");
                 winner = 'W';
+                break;
             }
             else if(size == 0){
                 turn = 1;
@@ -105,25 +111,20 @@ void * socketThread(void *arg){
             printf("Black won!\n");
             sendMsg(player1_socket, "You lost!\n");
             sendMsg(player2_socket, "You won!\n");
-            close(player1_socket);
-            close(player2_socket);
-            pthread_exit(NULL);
+            break;
         }
         else if (winner == 'W') {
             printf("White won!\n");
             sendMsg(player1_socket, "You won!\n");
             sendMsg(player2_socket, "You lost!\n");
-            close(player1_socket);
-            close(player2_socket);
-            pthread_exit(NULL);
+            break;
         }
         else if(checkDraw(board)){
             printf("Draw!\n");
             sendMsg(player1_socket, "Draw!\n");
             sendMsg(player2_socket, "Draw!\n");
-            close(player1_socket);
-            close(player2_socket);
-            pthread_exit(NULL);
+        
+            break;
         }
         else{
             size = sendMsg(player1_socket, "next round!\n");
@@ -131,29 +132,36 @@ void * socketThread(void *arg){
                 printf("White disconnected!\n");
                 printf("Black won!\n");
                 winner = 'B';
-
+                break;
             }
+
             size = sendMsg(player2_socket, "next round!\n");
             if (size <= 0) {
                 printf("Black disconnected!\n");
                 printf("White won!\n");
                 winner = 'W';
+                break;
             }
             size = recv(player1_socket, ack, sizeof ack, 0);
             if (size <= 0) {
                 printf("White disconnected!\n");
                 printf("Black won!\n");
                 winner = 'B';
+                break;
             } 
             size = recv(player2_socket, ack, sizeof ack, 0);
             if (size <= 0) {
                 printf("Black disconnected!\n");
                 printf("White won!\n");
                 winner = 'W';
+                break;
             }
         }
       
     }
+    close(player1_socket);
+    close(player2_socket);
+    pthread_exit(0);
     return NULL;
 }
 
