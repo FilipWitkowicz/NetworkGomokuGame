@@ -234,7 +234,7 @@ int main() {
             close(player2_socket);
             continue;
         }
-        recv(player2_socket, ack, sizeof ack, 0);
+        size = recv(player2_socket, ack, sizeof ack, 0);
         if (size <= 0) {
             printf("Player 2 disconnected before game even started! \n");
             close(player1_socket);
